@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NERO (NERIZI HERO)</title>
+  <style>
+  #mainGame {
+  position: relative;
+  min-height: 100vh;
+  padding: 20px;
+  overflow: hidden;
+}
+
+/* overlay gelap transparan */
+#mainGame::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 0;
+}
+
+/* isi mainGame tetap di atas overlay */
+#mainGame > * {
+  position: relative;
+  z-index: 1;
+}
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #eee;
+      text-align: center;
+    }
+    .hidden { display: none; }
+
+    /* Start Screen */
+    #startScreen {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    #pressStart {
+      margin-top: 20px;
+      font-size: 20px;
+      animation: blink 1s infinite;
+      cursor: pointer;
+    }
+    @keyframes blink {
+      0% { opacity: 1; }
+      50% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    /* Loading Screen */
+    #loadingScreen {
+      height: 100vh;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .bar-container {
+      width: 200px;
+      height: 20px;
+      background: #444;
+      border-radius: 5px;
+      margin: 5px auto;
+    }
+    .loading-bar {
+      height: 100%;
+      width: 0%;
+      background: lime;
+      border-radius: 5px;
+      transition: width 0.3s;
+    }
+
+    /* Game UI */
+    #enemy, #battle, #questionBox { display: none; }
+    .btn {
+      padding: 10px 20px;
+      margin: 5px;
+      background: #4caf50;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+    }
+    .btn:hover { background: #45a049; }
+    .skill-btn {
+  padding: 10px 20px;
+  margin: 5px;
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+  transition: background 0.3s ease;
+}
+
+/* Belum aktif */
+.skill-btn.inactive {
+  background: #666;
+  color: #ddd;
+  cursor: not-allowed;
+}
+
+/* Aktif */
+.skill-btn.active {
+  background: #28a745;
+  color: #fff;
+  cursor: pointer;
+}
+
+    .hp { height: 100%; background: lime; border-radius: 5px; transition: width 0.3s; }
+    .exp { height: 100%; background: cyan; border-radius: 5px; transition: width 0.3s; }
+
+    #arena { display: flex; justify-content: space-around; align-items: center; margin-top: 20px; height: 200px; }
+    .char { width: 100px; transition: transform 0.3s; }
+    .hit { animation: shake 0.4s; }
+    @keyframes shake {
+      0% { transform: translateX(0px); }
+      25% { transform: translateX(-10px); }
+      50% { transform: translateX(10px); }
+      75% { transform: translateX(-10px); }
+      100% { transform: translateX(0px); }
+    }
+    .attackAnim { transform: translateX(40px); }
+    @keyframes monsterAtk {
+      0% { transform: translateX(0); }
+      50% { transform: translateX(-30px); }
+      100% { transform: translateX(0); }
+    }
+    .monster-attack { animation: monsterAtk 0.5s ease; }
+    
+    /* Animasi Fade */
+    .fade-in { animation: fadeIn 1s forwards; }
+    .fade-out { animation: fadeOut 1s forwards; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+    /* Victory Screen */
+#victoryScreen {
+  display: none;
+  position: fixed;
+  top:0; left:0; width:100%; height:100%;
+  background: rgba(0,0,0,0.9);
+  color: #fff;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  z-index: 10000;
+  text-align: center;
+}
+
+#victoryScreen h1 {
+  font-size: 60px;
+  color: gold;
+  margin-bottom: 20px;
+  animation: fadeIn 2s;
+}
+
+#victoryScreen img {
+  width: 200px;
+  margin-bottom: 20px;
+  animation: fadeIn 2s;
+}
+
+#victoryScreen button {
+  padding: 15px 30px;
+  font-size: 20px;
+  border: none;
+  border-radius: 10px;
+  background: #28a745;
+  color: white;
+  cursor: pointer;
+}
+    /* Game Over Screen */
+#gameOverScreen {
+  display: none; /* cukup ini aja */
+  position: fixed;
+  top:0; left:0; width:100%; height:100%;
+  background: rgba(0,0,0,0.9);
+  color: red;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  z-index: 9999;
+  text-align: center;
+}
+    #gameOverScreen h1 {
+      font-size: 80px;
+      margin-bottom: 20px;
+      animation: fadeIn 2s;
+    }
+    #gameOverScreen button {
+      padding: 15px 30px;
+      font-size: 20px;
+      border: none;
+      border-radius: 10px;
+      background: #ff4444;
+      color: white;
+      cursor: pointer;
+    }
+    /* Efek Flash Skill 1 */
+#flashEffect {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(255, 69, 0, 0.6); /* warna 🔥 oranye-merah */
+  display: none;
+  z-index: 99999;
+}
+#battleWinScreen {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.8);
+  color: gold;
+  justify-content: center;
+  align-items: center;
+  z-index: 9998;
+  text-align: center;
+}
+#playerHPText, #enemyHPText {
+  font-weight: bold;
+  text-shadow: 1px 1px 3px black;
+}
+#battleWinScreen h1 {
+  font-size: 80px;
+  animation: zoomIn 1.5s ease forwards, fadeOut 1s ease 3s forwards;
+}
+@keyframes hpShake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  50% { transform: translateX(3px); }
+  75% { transform: translateX(-3px); }
+  100% { transform: translateX(0); }
+}
+@keyframes hpShakeSlow {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  50% { transform: translateX(2px); }
+  75% { transform: translateX(-2px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes hpShakeFast {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  50% { transform: translateX(4px); }
+  75% { transform: translateX(-4px); }
+  100% { transform: translateX(0); }
+}
+
+.hp-warning {
+  color: yellow !important;
+  animation: hpShakeSlow 0.5s infinite;
+  font-weight: bold;
+  text-shadow: 2px 2px 5px black;
+}
+
+.hp-danger {
+  color: red !important;
+  animation: hpShakeFast 0.5s infinite;
+  font-weight: bold;
+  text-shadow: 3px 3px 6px black;
+}
+.low-hp {
+  color: red !important;
+  animation: hpShake 0.s infinite;
+  font-weight: bold;
+  text-shadow: 2px 2px 5px black;
+}
+@keyframes zoomIn {
+  from { transform: scale(0.5); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+  </style>
+</head>
+<body>
+    <audio id="wrongSound">
+  <source src="assets/wrong.mp3" type="audio/mpeg">
+  Browser kamu tidak mendukung audio.
+</audio>
+<div style="margin-top:20px;">
+  <label style="font-size:18px;">
+    <input type="checkbox" id="vibrateToggle" checked>
+    🔔 Aktifkan Getar
+  </label>
+</div>
+<div id="wrongMessage" 
+     style="display:none; position:fixed; top:40%; left:50%; transform:translate(-50%,-50%);
+            font-size:40px; font-weight:bold; color:red; text-shadow:2px 2px 5px black;
+            background:rgba(0,0,0,0.7); padding:20px; border-radius:10px; z-index:99999;">
+  ❌ Ilmu tidak berhasil direbut kembali!
+</div>
+    <audio id="victoryMusic">
+  <source src="assets/win.mp3" type="audio/mpeg">
+  Browser kamu tidak mendukung audio.
+</audio>
+    <audio id="gameOverMusic">
+  <source src="assets/o1.mp3" type="audio/mpeg">
+  Browser kamu tidak mendukung audio.
+</audio>
+    <audio id="skill1Sound">
+  <source src="assets/api.mp3" type="audio/mpeg">
+  Browser kamu tidak mendukung audio.
+</audio>
+    <audio id="bgMusic" loop>
+  <source src="assets/ms2.mp3" type="audio/mpeg">
+  Browser kamu tidak mendukung audio.
+</audio>
+<audio id="attackSound">
+  <source src="assets/p1.mp3" type="audio/mpeg">
+  Browser kamu tidak mendukung audio.
+</audio>
+<div id="flashEffect"></div>
+<!-- Battle Win Screen -->
+<div id="battleWinScreen">
+  <h1>🎉 KAMU MENANG! 🎉</h1>
+</div>
+
+<!-- Victory Screen -->
+<div id="victoryScreen">
+  <img src="trophy.png" alt="Trophy"> <!-- ganti dengan gambar kamu -->
+  <h1>🎉 Selamat! Kamu menang!</h1>
+  <p>Kamu berhasil mengalahkan Boss Iblis Agung dan mengembalikan ilmu Kampung Ilmiah!</p>
+  <button onclick="restartGame(true)">Main Lagi</button>
+</div>
+
+  <!-- GAME OVER SCREEN -->
+  <div id="gameOverScreen">
+    <h1>GAME OVER</h1>
+    <button onclick="restartGame()">Coba Lagi</button>
+  </div>
+
+  <!-- Start Screen -->
+  <div id="startScreen">
+    <h1>🎮 NERO (NERIZI HERO)</h1>
+    <div id="pressStart">👉 PRESS START 👈</div>
+  </div>
+
+  <!-- Loading Screen -->
+  <div id="loadingScreen" class="hidden">
+    <h2>Loading...</h2>
+    <div class="bar-container"><div id="loadingBar" class="loading-bar"></div></div>
+  </div>
+
+  <!-- Prolog Screen -->
+  <div id="prologScreen" class="hidden">
+    <h2>📜 Awal Cerita</h2>
+    <p>Di sebuah kampung yang damai, bernama Kampung Ilmiah, semua warganya dikenal memiliki ilmu pengetahuan yang luar biasa. Mereka menguasai matematika, astronomi, fisika, biologi, dan seni dengan cara yang tak tertandingi oleh kampung lain. Namun, di tengah kemajuan itu, ada seorang pemuda bernama Nero. Ia tidak secerdas warga lainnya. Ilmunya minim, dan seringkali ia menjadi bahan olok-olok. “Nero, bahkan sapu pun kau tak bisa hitung dengan benar!” ejek mereka.
+
+Nero hanya tersenyum menahan malu. Ia tahu, ia tidak seberuntung yang lain, tapi hatinya tetap penuh rasa ingin tahu.
+
+Suatu hari, kedamaian kampung itu hancur. Segerombolan iblis dari dunia gelap menyerang. Mereka ingin mencuri semua ilmu yang dimiliki warga kampung, menghisap pengetahuan dari buku-buku, catatan, dan bahkan ingatan penduduknya. Dalam hitungan jam, ilmu pengetahuan yang telah diwariskan selama ratusan tahun lenyap. Kampung yang dulu makmur kini berubah menjadi tempat yang sunyi dan penuh kebingungan.
+
+Orang-orang yang dulu pandai, kini bingung dengan hal-hal yang paling sederhana. Nero, yang dulu dianggap bodoh, tetap memiliki sesuatu yang tidak bisa dicuri iblis: keinginan untuk belajar dan keberanian untuk bertindak. Ia memutuskan, “Aku akan mengembalikan ilmu kampung kita. Aku akan merebut kembali pengetahuan yang hilang itu!”
+
+Perjalanan Nero tidak mudah. Ia harus menembus hutan gelap, menghadapi makhluk-makhluk jahat, dan...</p>
+    <button class="btn" id="nextToGame">Lanjutkan Petualangan</button>
+  </div>
+
+  <!-- Main Game -->
+  <div id="mainGame" class="hidden">
+    <h1>Petualangan mengembalikan kejayaan ILMU</h1>
+    <div id="game">
+      <p>👤 Level: <span id="level">1</span></p>
+<p>❤️ HP Player:</p>
+<div class="bar-container" style="position:relative;">
+  <div id="playerHP" class="hp" style="width:100%"></div>
+  <span id="playerHPText" 
+        style="position:absolute; top:0; left:50%; transform:translateX(-50%);
+               font-size:14px; color:black; font-weight:bold;">3 / 3</span>
+</div>
+
+      <p>⭐ EXP:</p>
+      <div class="bar-container"><div id="expBar" class="exp" style="width:0%"></div></div>
+      <button class="btn" onclick="explore()">🔍 Jelajah</button>
+    </div>
+
+    <div id="enemy">
+      <h2>👹 Musuh muncul!</h2>
+      <button class="btn" onclick="startQuestion()">📘 Jawab Pertanyaan</button>
+    </div>
+
+    <div id="questionBox">
+      <h2 id="question"></h2>
+      <div id="answers"></div>
+    </div>
+
+    <div id="battle">
+      <h2>⚔️ Battle dimulai! musuh mau merebut kembali ilmu yang didapat</h2>
+<p>HP Musuh:</p>
+<div class="bar-container" style="position:relative;">
+  <div id="enemyHP" class="hp" style="width:100%"></div>
+  <span id="enemyHPText" 
+        style="position:absolute; top:0; left:50%; transform:translateX(-50%);
+               font-size:14px; color:black; font-weight:bold;">0 / 0</span>
+</div>
+      <div id="arena">
+        <img id="hero" class="char" src="assets/cr1.jpg" alt="Hero">
+        <img id="monster" class="char" src="assets/m3.jpg" alt="Monster">
+        <h3 id="monsterName"></h3>
+      </div>
+      <button class="btn" onclick="attack()">💥 Attack</button>
+<button id="skill1Btn" class="skill-btn inactive" onclick="useSkill(1)" disabled>🔥 Skill 1</button>
+<button id="skill2Btn" class="skill-btn inactive" onclick="useSkill(2)" disabled>⚡ Skill 2</button>
+      <div id="log" style="margin-top:15px; max-height:120px; overflow-y:auto; background:#222; padding:10px; border-radius:5px; font-size:14px; text-align:left;"></div>
+    </div> <!-- penutup #battle -->
+
+    <!-- Popup Konfirmasi Boss -->
+    <div id="bossConfirm" 
+         style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+                background:rgba(0,0,0,0.8); color:white; 
+                display:flex; justify-content:center; align-items:center; flex-direction:column;
+                z-index:9999; text-align:center;">
+      <h2>⚔️ Boss iblis muncul</h2>
+      <p>Apakah kamu siap melawan Boss Iblis Agung?</p>
+      <button class="btn" onclick="fightBoss()">🔥 Siap!</button>
+      <button class="btn" onclick="backToSoldier()">↩️ Belum, Kembali Latihan</button>
+    </div>
+<script>
+    let vibrateEnabled = true;
+
+// toggle vibrasi
+document.getElementById("vibrateToggle").addEventListener("change", (e) => {
+  vibrateEnabled = e.target.checked;
+});
+  // TEKAN START
+document.getElementById("pressStart").addEventListener("click", () => {
+  document.getElementById("startScreen").style.display = "none";
+  document.getElementById("loadingScreen").style.display = "block";
+
+  // Play background music
+  const music = document.getElementById("bgMusic");
+  music.volume = 0.5; // atur volume 50%
+  music.play().catch(err => console.log(err));
+
+  startLoading();
+});
+  // LOADING
+  function startLoading() {
+    let bar = document.getElementById("loadingBar");
+    let progress = 0;
+    let interval = setInterval(() => {
+      progress += 10;
+      bar.style.width = progress + "%";
+      if (progress >= 100) {
+        clearInterval(interval);
+        let loading = document.getElementById("loadingScreen");
+        loading.classList.add("fade-out");
+        setTimeout(() => {
+          loading.style.display = "none";
+          let prolog = document.getElementById("prologScreen");
+          prolog.style.display = "block";
+          prolog.classList.add("fade-in");
+        }, 1000);
+      }
+    }, 300);
+  }
+
+  // PROLOG KE GAME
+  document.getElementById("nextToGame").addEventListener("click", () => {
+    let prolog = document.getElementById("prologScreen");
+    prolog.classList.remove("fade-in");
+    prolog.classList.add("fade-out");
+    setTimeout(() => {
+      prolog.style.display = "none";
+      let game = document.getElementById("mainGame");
+      game.style.display = "block";
+      game.classList.add("fade-in");
+    }, 1000);
+  });
+
+  // GAME LOGIC
+  let enemyHP = 0, enemiesDefeated = 0, officersDefeated = 0, generalsDefeated = 0;
+  let level = 1, maxHP = 3, playerHP = maxHP;
+  let exp = 0, expNeeded = level * 3;
+  let currentMonster = null;
+
+  let monsters = [
+    { name: "Prajurit Iblis", hp: 10, attack: 2, img: "assets/p1.jpeg" },
+    { name: "Perwira Iblis", hp: 20, attack: 4, img: "assets/p1.jpeg" },
+    { name: "Jenderal Iblis", hp: 30, attack: 8, img: "assets/bos.png" },
+    { name: "Boss Iblis Agung", hp: 50, attack: 12, img: "assets/jen1.png" }
+  ];
+
+  const questionSets = {
+    prajurit: [
+   { q: "Sains adalah usaha manusia untuk memahami fenomena alam secara …", a:["Cerita rakyat","Sistematis dan berdasarkan bukti","Tebak-tebakan","Mitologi"], correct:1 },
+   { q: "Tujuan utama sains adalah …", a:["Menciptakan mitos","Mengetahui fenomena alam dan menjelaskannya secara logis","Menyebarkan cerita rakyat","Menghafal semua penemuan"], correct:1 },
+
+   { q: "Ilmu yang mempelajari alam dan fenomena di sekitarnya disebut …", a:["Sejarah","Seni","Sains","Sosiologi"], correct:2 },
+   { q: "Contoh aktivitas sains sehari-hari adalah …", a:["Bermain game online","Mengamati pertumbuhan tanaman","Menonton TV","Mendengarkan musik"], correct:1 },
+
+   { q: "Cabang sains yang mempelajari makhluk hidup adalah …", a:["Astronomi","Biologi","Kimia","Fisika"], correct:1 },
+   { q: "Cabang sains yang mempelajari zat dan reaksinya adalah …", a:["Fisika","Geografi","Kimia","Biologi"], correct:2 },
+
+   { q: "Fungsi laboratorium IPA adalah …", a:["Tempat bermain","Tempat belajar seni","Tempat melakukan percobaan dan pengamatan ilmiah","Tempat istirahat"], correct:2 },
+   { q: "Peralatan berikut yang biasanya ada di laboratorium IPA adalah …", a:["TV dan radio","Kursi dan meja makan","Tabung reaksi, gelas ukur, mikroskop","Komputer dan printer"], correct:2 },
+
+   { q: "Alat yang digunakan untuk mengukur massa benda adalah …", a:["Termometer","Neraca","Stopwatch","Penggaris"], correct:1 },
+   { q: "Alat yang digunakan untuk mengukur panjang adalah …", a:["Jangka sorong atau penggaris","Timbangan","Termometer","Gelas ukur"], correct:0 },
+
+   { q: "Besaran pokok yang satuannya meter (m) adalah …", a:["Waktu","Massa","Panjang","Suhu"], correct:2 },
+   { q: "Kecepatan termasuk besaran … karena merupakan kombinasi dari panjang dan waktu.", a:["Dimensi tunggal","Turunan","Pokok","Konstan"], correct:1 },
+
+   { q: "Langkah pertama dalam metode ilmiah adalah …", a:["Mengajukan pertanyaan atau mengamati fenomena","Menyajikan laporan","Membuat kesimpulan","Mencoba-coba tanpa perencanaan"], correct:0 },
+   { q: "Variabel yang sengaja diubah dalam percobaan disebut …", a:["Variabel kontrol","Variabel acak","Variabel bebas","Variabel terikat"], correct:2 },
+
+   { q: "Bagian laporan percobaan yang berisi kesimpulan dan jawaban atas pertanyaan disebut …", a:["Alat dan bahan","Kesimpulan","Pendahuluan","Tujuan"], correct:1 },
+   { q: "Data percobaan biasanya disajikan dalam bentuk …", a:["Novel","Puisi","Tabel, grafik, atau diagram","Cerita fiksi"], correct:2 }
+],
+    perwira: [
+   { 
+     q: "Cabang ilmu sains dibagi menjadi …", 
+     a:["Fisika, Biologi, Sejarah","Biologi, Kimia, Fisika","Matematika, Seni, Fisika","Kimia, Bahasa, Ekonomi"], 
+     correct:1 
+   },
+
+   { 
+     q: "Alat ukur yang termasuk digunakan di laboratorium IPA adalah …", 
+     a:["Penggaris, Gelas ukur, Mikroskop","Stopwatch, Kompas, Lampu","Pisau, Sendok, Piring","TV, Radio, Printer"], 
+     correct:0 
+   },
+
+   { 
+     q: "Besaran pokok yang ada dalam sistem SI meliputi …", 
+     a:["Panjang, Massa, Waktu","Kecepatan, Gaya, Energi","Volume, Tekanan, Luas","Panjang, Suhu, Energi"], 
+     correct:0 
+   },
+
+   { 
+     q: "Langkah-langkah dalam metode ilmiah yang benar adalah …", 
+     a:["Observasi, Menyusun hipotesis, Melakukan percobaan, Menarik kesimpulan","Menarik kesimpulan, Observasi, Melakukan percobaan, Menyusun hipotesis","Menyusun hipotesis, Membuat laporan, Observasi, Percobaan","Observasi, Bermain, Menulis puisi, Membuat kesimpulan"], 
+     correct:0 
+   }
+],
+jenderal: [
+   { 
+     q: "Mengapa laboratorium IPA penting dalam pembelajaran sains?", 
+     a:["Karena tempatnya luas","Karena bisa bermain dengan teman","Karena percobaan dan pengamatan langsung membantu memahami konsep sains","Karena ada banyak alat mahal"], 
+     correct:2 
+   },
+
+   { 
+     q: "Hubungan antara besaran pokok dengan besaran turunan adalah …", 
+     a:["Besaran turunan tidak ada kaitan dengan besaran pokok","Besaran turunan merupakan gabungan dari dua atau lebih besaran pokok","Besaran pokok lebih sulit dipahami daripada besaran turunan","Besaran pokok dan turunan sama saja"], 
+     correct:1 
+   },
+
+   { 
+     q: "Mengapa langkah observasi sangat penting dalam metode ilmiah?", 
+     a:["Karena tanpa observasi tidak ada dasar untuk menyusun hipotesis","Karena observasi hanya dilakukan di akhir","Karena observasi membuat laporan lebih indah","Karena observasi menggantikan percobaan"], 
+     correct:0 
+   },
+
+   { 
+     q: "Mengapa data percobaan perlu disajikan dalam bentuk tabel, grafik, atau diagram?", 
+     a:["Agar lebih cepat selesai","Agar mudah dipahami dan hubungan antar data terlihat jelas","Agar terlihat lebih banyak isinya","Agar lebih berwarna"], 
+     correct:1 
+   }
+],
+    boss: [
+   { 
+     q: "Jika kamu menemukan tumbuhan di tempat gelap tumbuh ke arah cahaya, konsep sains apa yang bisa digunakan untuk menjelaskan fenomena ini?", 
+     a:["Fotosintesis","Fototropisme","Respirasi","Transpirasi"], 
+     correct:1 
+   },
+
+   { 
+     q: "Seorang siswa ingin mengetahui pengaruh jenis tanah terhadap pertumbuhan tanaman. Apa rancangan percobaan yang paling tepat?", 
+     a:["Menanam tanaman di tanah berbeda tetapi dengan jumlah air dan cahaya sama","Menanam tanaman di tanah berbeda dengan air dan cahaya berbeda","Menanam tanaman di tanah sama tetapi jumlah air berbeda","Menanam tanaman di tanah sama dengan cahaya berbeda"], 
+     correct:0 
+   },
+
+   { 
+     q: "Jika dalam laporan percobaan terdapat data yang tidak konsisten dengan hipotesis, apa yang sebaiknya dilakukan?", 
+     a:["Membuang data yang tidak sesuai","Menyusun kembali hipotesis berdasarkan data","Tetap mempertahankan hipotesis awal tanpa perubahan","Menghentikan penelitian"], 
+     correct:1 
+   },
+
+   { 
+     q: "Sebuah botol plastik berisi air dijemur di bawah terik matahari. Setelah beberapa jam botol tampak menggembung. Kesimpulan ilmiah yang dapat diambil adalah …", 
+     a:["Air menyusut karena panas","Udara di dalam botol memuai karena panas","Botol plastik berubah bentuk karena warnanya","Air mengeras karena terkena cahaya"], 
+     correct:1 
+   }
+]
+  };
+
+function updateUI() {
+  document.getElementById("level").innerText = level;
+
+  // HP Player
+  let playerPercent = playerHP / maxHP * 100;
+  document.getElementById("playerHP").style.width = playerPercent + "%";
+  let playerText = document.getElementById("playerHPText");
+  playerText.innerText = playerHP + " / " + maxHP;
+
+  playerText.classList.remove("hp-warning", "hp-danger");
+  if (playerPercent >= 70) {
+    playerText.style.color = "lime";
+  } else if (playerPercent >= 30) {
+    playerText.classList.add("hp-warning"); // kuning, goyang pelan
+  } else {
+    playerText.classList.add("hp-danger"); // merah, goyang cepat
+  }
+  if (playerPercent >= 70) {
+  playerText.style.color = "lime";
+} else if (playerPercent >= 30) {
+  playerText.classList.add("hp-warning");
+  if (vibrateEnabled && navigator.vibrate) navigator.vibrate(200);
+} else {
+  playerText.classList.add("hp-danger");
+  if (vibrateEnabled && navigator.vibrate) navigator.vibrate([300,100,300,100,300]);
+}
+
+  // HP Musuh
+  if (currentMonster) {
+    let enemyPercent = enemyHP / currentMonster.hp * 100;
+    document.getElementById("enemyHP").style.width = enemyPercent + "%";
+    let enemyText = document.getElementById("enemyHPText");
+    enemyText.innerText = enemyHP + " / " + currentMonster.hp;
+
+    enemyText.classList.remove("hp-warning", "hp-danger");
+    if (enemyPercent >= 70) {
+      enemyText.style.color = "lime";
+    } else if (enemyPercent >= 30) {
+      enemyText.classList.add("hp-warning");
+    } else {
+      enemyText.classList.add("hp-danger");
+    }
+  }
+
+  // EXP
+  document.getElementById("expBar").style.width = (exp / expNeeded * 100) + "%";
+}
+function explore() {
+  if (enemiesDefeated < 5) {
+    // Tahap 1: kalahkan 5 prajurit dulu
+    currentMonster = monsters[0];
+  } else if (officersDefeated < 3) {
+    // Tahap 2: setelah prajurit, lawan 3 perwira
+    currentMonster = monsters[1];
+  } else if (generalsDefeated < 1) {
+    // Tahap 3: setelah perwira, lawan 1 jenderal
+    currentMonster = monsters[2];
+  } else {
+    // Tahap 4: setelah jenderal kalah, baru muncul konfirmasi Boss
+    document.getElementById("bossConfirm").style.display = "flex";
+    return;
+  }
+
+  startEncounter();
+}
+
+// mulai pertempuran biasa
+function startEncounter() {
+  enemyHP = currentMonster.hp;
+  document.getElementById("monsterName").innerText = currentMonster.name;
+  document.getElementById("monster").src = currentMonster.img;
+  document.getElementById("enemy").style.display = "block";
+}
+
+// kalau pilih "Siap" lawan Boss
+function fightBoss() {
+  currentMonster = monsters[3]; // boss
+  document.getElementById("bossConfirm").style.display = "none";
+  startEncounter();
+}
+
+// kalau pilih "Belum" kembali ke prajurit
+function backToSoldier() {
+  currentMonster = monsters[0]; // prajurit
+  document.getElementById("bossConfirm").style.display = "none";
+  startEncounter();
+}
+
+
+function startQuestion() {
+  document.getElementById("enemy").style.display = "none";
+  document.getElementById("questionBox").style.display = "block";
+  
+  let qSet;
+  if (currentMonster.name.includes("Prajurit")) qSet = questionSets.prajurit;
+  else if (currentMonster.name.includes("Perwira")) qSet = questionSets.perwira;
+  else if (currentMonster.name.includes("Jenderal")) qSet = questionSets.jenderal;
+  else qSet = questionSets.boss;
+
+  let q = qSet[Math.floor(Math.random() * qSet.length)];
+  document.getElementById("question").innerText = q.q;
+  let answerBox = document.getElementById("answers");
+  answerBox.innerHTML = "";
+
+  q.a.forEach((ans, i) => {
+    let btn = document.createElement("button");
+    btn.innerText = ans;
+    btn.className = "btn";
+    btn.onclick = () => {
+      clearInterval(questionTimer); // stop timer kalau sudah jawab
+      checkAnswer(i, q.correct);
+    };
+    answerBox.appendChild(btn);
+  });
+
+  // === Mulai timer 25 detik ===
+  timeLeft = 25;
+  updateTimerDisplay(); // tampilkan waktu awal
+  clearInterval(questionTimer);
+  questionTimer = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay();
+    if (timeLeft <= 0) {
+      clearInterval(questionTimer);
+      // kalau waktu habis → dianggap salah
+      playerHP--;
+      updateUI();
+      document.getElementById("questionBox").style.display = "none";
+      if (playerHP <= 0) {
+        gameOver();
+      }
+    }
+  }, 1000);
+}
+
+// tampilkan waktu di layar
+function updateTimerDisplay() {
+  let qBox = document.getElementById("questionBox");
+  let timerEl = document.getElementById("questionTimer");
+  if (!timerEl) {
+    timerEl = document.createElement("div");
+    timerEl.id = "questionTimer";
+    timerEl.style.marginTop = "10px";
+    timerEl.style.fontSize = "20px";
+    timerEl.style.color = "yellow";
+    qBox.appendChild(timerEl);
+  }
+  timerEl.innerText = "⏳ Waktu tersisa: " + timeLeft + " detik";
+}
+
+  function checkAnswer(choice, correct) {
+  document.getElementById("questionBox").style.display = "none";
+  
+  if (choice === correct) {
+    startBattle();
+  } else {
+    // mainkan suara salah
+    const wrongSfx = document.getElementById("wrongSound");
+    wrongSfx.currentTime = 0;
+    wrongSfx.play().catch(err => console.log(err));
+
+    // tampilkan pesan dramatis
+    let msg = document.getElementById("wrongMessage");
+    msg.style.display = "block";
+    setTimeout(() => { msg.style.display = "none"; }, 2000); // hilang setelah 2 detik
+
+    // kurangi HP
+    playerHP--;
+    updateUI();
+    if (playerHP <= 0) {
+      gameOver();
+    }
+  }
+}
+
+function startBattle() {
+  enemyHP = currentMonster.hp;
+  monsterCooldown = 3;
+  document.getElementById("battle").style.display = "block";
+  document.getElementById("log").innerHTML = "";
+  updateUI();
+
+  // Pause BGM
+  const music = document.getElementById("bgMusic");
+  music.pause();
+}
+
+  function attack() {
+  // mainkan suara attack
+  const attackAudio = document.getElementById("attackSound");
+  attackAudio.currentTime = 0; // mulai dari awal
+  attackAudio.play().catch(err => console.log(err));
+
+  let hero = document.getElementById("hero");
+  let monster = document.getElementById("monster");
+  hero.classList.add("attackAnim");
+  setTimeout(() => {
+    hero.classList.remove("attackAnim");
+    monster.classList.add("hit");
+    setTimeout(() => monster.classList.remove("hit"), 400);
+  }, 300);
+
+  let heroDamage = Math.floor(level * 1.5);
+  enemyHP -= heroDamage;
+  let log = document.getElementById("log");
+  log.innerHTML += `<div>🗡️ Hero menyerang! ${currentMonster.name} -${heroDamage} HP</div>`;
+  log.scrollTop = log.scrollHeight;
+
+  updateUI();
+  if (enemyHP <= 0) winBattle();
+}
+function updateSkills() {
+  const s1 = document.getElementById("skill1Btn");
+  const s2 = document.getElementById("skill2Btn");
+
+  // Skill 1 aktif setelah 10 prajurit
+  if (enemiesDefeated >= 3) {
+    s1.disabled = false;
+    s1.classList.remove("inactive");
+    s1.classList.add("active");
+  }
+
+  // Skill 2 aktif setelah 10 perwira
+  if (officersDefeated >= 10) {
+    s2.disabled = false;
+    s2.classList.remove("inactive");
+    s2.classList.add("active");
+  }
+}
+
+
+function useSkill(skill) {
+  if (!currentMonster) return;
+
+  let hero = document.getElementById("hero");
+  let monster = document.getElementById("monster");
+
+  hero.classList.add("attackAnim");
+  setTimeout(() => {
+    hero.classList.remove("attackAnim");
+    monster.classList.add("hit");
+    setTimeout(() => monster.classList.remove("hit"), 400);
+  }, 300);
+
+  let multiplier = (skill === 1) ? 1.5 : 3;
+  let skillName = (skill === 1) ? "🔥 Skill 1" : "⚡ Skill 2";
+  let damage = Math.floor(level * 1.5 * multiplier);
+
+  // 🔊 Suara khusus Skill 1
+  if (skill === 1) {
+    const sfx1 = document.getElementById("skill1Sound");
+    sfx1.currentTime = 0; 
+    sfx1.play().catch(err => console.log(err));
+
+    // 🌟 Efek flash layar
+    let flash = document.getElementById("flashEffect");
+    flash.style.display = "block";
+    setTimeout(() => { flash.style.display = "none"; }, 200); // hilang setelah 200ms
+  }
+
+  enemyHP -= damage;
+  let log = document.getElementById("log");
+  log.innerHTML += `<div>${skillName}! ${currentMonster.name} -${damage} HP</div>`;
+  log.scrollTop = log.scrollHeight;
+
+  updateUI();
+  if (enemyHP <= 0) winBattle();
+}
+function gameOver() {
+  // stop BGM utama
+  const bgm = document.getElementById("bgMusic");
+  bgm.pause();
+  bgm.currentTime = 0;
+
+  // mainkan musik game over
+  const overMusic = document.getElementById("gameOverMusic");
+  overMusic.currentTime = 0;
+  overMusic.play().catch(err => console.log(err));
+
+  // tampilkan layar Game Over
+  document.getElementById("mainGame").style.display = "none";
+  let over = document.getElementById("gameOverScreen");
+  over.style.display = "flex";
+}
+function resetScreens() {
+  document.getElementById("startScreen").style.display = "none";
+  document.getElementById("loadingScreen").style.display = "none";
+  document.getElementById("prologScreen").style.display = "none";
+  document.getElementById("mainGame").style.display = "none";
+  document.getElementById("enemy").style.display = "none";
+  document.getElementById("questionBox").style.display = "none";
+  document.getElementById("battle").style.display = "none";
+  document.getElementById("gameOverScreen").style.display = "none";
+}
+function resetAnimations() {
+  document.querySelectorAll(".fade-in, .fade-out").forEach(el => {
+    el.classList.remove("fade-in", "fade-out");
+  });
+}
+function restartGame(fromVictory = false) {
+  // 🔇 hentikan musik game over dulu
+  const overMusic = document.getElementById("gameOverMusic");
+  overMusic.pause();
+  overMusic.currentTime = 0;
+
+  // reset data
+  level = 1; 
+  maxHP = 3; 
+  playerHP = maxHP;
+  exp = 0; 
+  expNeeded = level * 3;
+  enemiesDefeated = 0; 
+  officersDefeated = 0; 
+  generalsDefeated = 0;
+  currentMonster = null;
+
+  // reset tampilan layar
+  resetScreens();
+  resetAnimations();
+  document.getElementById("bossConfirm").style.display = "none";
+
+  if (fromVictory) {
+    document.getElementById("mainGame").style.display = "block";
+    updateUI();
+  } else {
+    document.getElementById("startScreen").style.display = "flex";
+    const music = document.getElementById("bgMusic");
+    music.currentTime = 0;
+    music.play().catch(err => console.log(err));
+  }
+}
+
+function winBattle() {
+  // stop BGM
+  const bgm = document.getElementById("bgMusic");
+  bgm.pause();
+
+  // tampilkan layar kemenangan sementara
+  const battleWin = document.getElementById("battleWinScreen");
+  battleWin.style.display = "flex";
+
+  // mainkan musik kemenangan
+  const vMusic = document.getElementById("victoryMusic");
+  vMusic.currentTime = 0;
+  vMusic.play().catch(err => console.log(err));
+
+  vMusic.onended = () => {
+    // sembunyikan layar kemenangan
+    battleWin.style.display = "none";
+
+    exp += 2;
+    if (currentMonster.name.includes("Prajurit")) enemiesDefeated++;
+    else if (currentMonster.name.includes("Perwira")) officersDefeated++;
+    else if (currentMonster.name.includes("Jenderal")) generalsDefeated++;
+    else if (currentMonster.name.includes("Boss")) {
+      document.getElementById("battle").style.display = "none";
+      document.getElementById("mainGame").style.display = "none";
+      document.getElementById("victoryScreen").style.display = "flex";
+      return;
+    }
+
+    if (exp >= expNeeded) {
+  exp = 0; 
+  level++; 
+  maxHP += 2;        // setiap level naik, HP maksimal bertambah 2
+  playerHP = maxHP;  // isi ulang penuh HP
+  expNeeded = level * 3;
+  alert("LEVEL UP! 🎉 Sekarang Level " + level + " (❤️ HP max = " + maxHP + ")");
+}
+
+    document.getElementById("battle").style.display = "none";
+    updateUI();
+    updateSkills();
+
+    // lanjutkan BGM
+    bgm.currentTime = 0;
+    bgm.play().catch(err => console.log(err));
+  };
+}
+   
+
+  // Monster AI
+  let monsterCooldown = 3;
+  function monsterTurn() {
+    if (document.getElementById("battle").style.display === "block" && enemyHP > 0 && playerHP > 0) {
+      if (monsterCooldown <= 0) {
+        let baseDamage = currentMonster.attack || 1;
+        let damage = Math.floor(Math.random() * baseDamage) + 1;
+        playerHP -= damage;
+        if (playerHP < 0) playerHP = 0;
+        let monsterEl = document.getElementById("monster");
+        monsterEl.classList.add("monster-attack");
+        setTimeout(() => monsterEl.classList.remove("monster-attack"), 500);
+        let log = document.getElementById("log");
+        log.innerHTML += `<div>👹 ${currentMonster.name} menyerang! Player -${damage} HP</div>`;
+        log.scrollTop = log.scrollHeight;
+        updateUI();
+        if (playerHP <= 0) gameOver();
+        monsterCooldown = 3;
+      } else monsterCooldown--;
+    }
+  }
+  setInterval(monsterTurn, 1000);
+
+  updateUI();
+  // Atur background main game dari localStorage
+window.addEventListener("DOMContentLoaded", () => {
+  const mainGame = document.getElementById("mainGame");
+  const bg = localStorage.getItem("gameBackground");
+
+  if (bg) {
+    mainGame.style.background = `url(${bg}) no-repeat center center`;
+    mainGame.style.backgroundSize = "cover";
+  } else {
+    // fallback default
+    mainGame.style.background = "url('bg1.png') no-repeat center center";
+    mainGame.style.backgroundSize = "cover";
+  }
+});
+</script>
+</body>
+</html>
